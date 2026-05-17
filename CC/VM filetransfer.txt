@@ -1,0 +1,418 @@
+File Transfer Between Two Ubuntu Virtual Machines Using SCP (VirtualBox)
+
+This procedure explains how to:
+
+Create two Ubuntu VMs using copied VDI files
+Fix duplicate UUID issue
+Configure NAT Network in VirtualBox
+Install SSH Server
+Transfer files using SCP command
+Requirements
+
+Install:
+
+Oracle VirtualBox
+Ubuntu VDI file
+
+Example VDI:
+
+Ubuntu 25.04 (64bit).vdi
+PART 1: CREATE NAT NETWORK
+STEP 1: Open VirtualBox
+
+Open VirtualBox.
+
+STEP 2: Create NAT Network
+
+Go to:
+
+File → Tools → Network Manager
+
+Open:
+
+NAT Networks
+
+Click:
+
+Create
+
+A network named:
+
+NatNetwork
+
+will be created.
+
+Keep:
+
+DHCP Enabled ✔
+IPv4 Enabled ✔
+
+Click:
+
+Apply
+
+Close window.
+
+PART 2: CREATE TWO VMs USING COPIED VDI
+STEP 3: Close VirtualBox
+
+Completely close:
+
+VirtualBox
+All running VMs
+STEP 4: Copy Original VDI File
+
+Go to folder containing original .vdi.
+
+Example:
+
+C:\Users\Aman Kumar\Downloads\64bit\64bit
+
+Copy:
+
+Ubuntu 25.04 (64bit).vdi
+
+Paste in same folder.
+
+Rename copied file to:
+
+Ubuntu 25.04 (64bit) - Copy.vdi
+STEP 5: Open CMD as Administrator
+
+Press:
+
+Windows + S
+
+Search:
+
+cmd
+
+Right click:
+
+Run as administrator
+STEP 6: Go to VirtualBox Folder
+
+Run:
+
+cd "C:\Program Files\Oracle\VirtualBox"
+STEP 7: Fix UUID of Copied VDI
+
+Run:
+
+VBoxManage internalcommands sethduuid "C:\Users\Aman Kumar\Downloads\64bit\64bit\Ubuntu 25.04 (64bit) - Copy.vdi"
+STEP 8: Verify Success
+
+You should get:
+
+UUID changed successfully
+
+Now copied VDI becomes independent.
+
+PART 3: CREATE VM1 AND VM2
+STEP 9: Create VM1
+
+Open VirtualBox.
+
+Click:
+
+New
+
+Set:
+
+Name → VM1
+Type → Linux
+Version → Ubuntu (64-bit)
+
+Click:
+
+Next
+
+Assign RAM.
+
+Choose:
+
+Use an Existing Virtual Hard Disk File
+
+Select:
+
+Ubuntu 25.04 (64bit).vdi
+
+Click:
+
+Finish
+STEP 10: Create VM2
+
+Again click:
+
+New
+
+Set:
+
+Name → VM2
+Type → Linux
+Version → Ubuntu (64-bit)
+
+Click:
+
+Next
+
+Assign RAM.
+
+Choose:
+
+Use an Existing Virtual Hard Disk File
+
+Select:
+
+Ubuntu 25.04 (64bit) - Copy.vdi
+
+Click:
+
+Finish
+PART 4: CONFIGURE NETWORK FOR BOTH VMs
+STEP 11: Configure VM1 Network
+
+Select:
+
+VM1 → Settings → Network → Adapter 1
+
+Tick:
+
+Enable Network Adapter
+
+Set:
+
+Attached to → NAT Network
+
+Set:
+
+Name → NatNetwork
+
+Click:
+
+OK
+STEP 12: Configure VM2 Network
+
+Select:
+
+VM2 → Settings → Network → Adapter 1
+
+Tick:
+
+Enable Network Adapter
+
+Set:
+
+Attached to → NAT Network
+
+Set:
+
+Name → NatNetwork
+
+Click:
+
+OK
+PART 5: START BOTH VMs
+STEP 13: Start Virtual Machines
+
+Start:
+
+VM1 → Sender VM
+VM2 → Receiver VM
+PART 6: CHECK RECEIVER VM IP
+STEP 14: Find Receiver VM IP Address
+
+On RECEIVER VM open terminal.
+
+Run:
+
+ifconfig
+
+OR
+
+ip addr
+
+You will see:
+
+inet 10.0.2.4
+
+Example Receiver IP:
+
+10.0.2.4
+
+Write it down.
+
+PART 7: INSTALL SSH SERVER
+STEP 15: Update Ubuntu
+
+On RECEIVER VM run:
+
+sudo apt update
+
+Optional:
+
+sudo apt upgrade -y
+STEP 16: Install SSH Server
+
+Run:
+
+sudo apt install openssh-server -y
+STEP 17: Start SSH Service
+
+Run:
+
+sudo service ssh start
+
+Enable SSH at boot:
+
+sudo systemctl enable ssh
+STEP 18: Check SSH Status
+
+Run:
+
+sudo service ssh status
+
+You must see:
+
+active (running)
+
+Press:
+
+q
+
+to exit.
+
+PART 8: TEST NETWORK CONNECTION
+STEP 19: Test Ping
+
+On SENDER VM run:
+
+ping 10.0.2.4
+
+(Replace with receiver IP)
+
+If working:
+
+64 bytes from 10.0.2.4
+
+Stop ping:
+
+CTRL + C
+PART 9: CREATE FILE ON SENDER VM
+STEP 20: Create File
+
+Run:
+
+touch aman.txt
+STEP 21: Edit File
+
+Run:
+
+nano aman.txt
+
+Write:
+
+Hello all.
+I am Aman.
+
+Save:
+
+CTRL + O
+ENTER
+CTRL + X
+STEP 22: Verify File
+
+Run:
+
+cat aman.txt
+
+Output:
+
+Hello all.
+I am Aman.
+PART 10: TRANSFER FILE USING SCP
+STEP 23: Verify Username and Password
+
+From terminal prompt:
+
+osboxes@osboxes
+
+Username is:
+
+osboxes
+
+Password is:
+
+osboxes.org
+STEP 24: Run SCP Command
+
+On SENDER VM run:
+
+scp aman.txt osboxes@10.0.2.4:/home/osboxes/
+
+Where:
+
+aman.txt → file name
+osboxes → receiver username
+10.0.2.4 → receiver IP
+STEP 25: SSH First-Time Confirmation
+
+You may see:
+
+Are you sure you want to continue connecting
+
+Type:
+
+yes
+
+Press Enter.
+
+STEP 26: Enter Password
+
+You will see:
+
+password:
+
+Enter:
+
+osboxes.org
+
+Transfer will complete.
+
+You should see:
+
+aman.txt 100%
+PART 11: VERIFY FILE ON RECEIVER VM
+STEP 27: Open Receiver Home Directory
+
+On RECEIVER VM run:
+
+cd /home/osboxes
+STEP 28: Check File
+
+Run:
+
+ls
+
+You should see:
+
+aman.txt
+STEP 29: Open File
+
+Run:
+
+cat aman.txt
+
+Output:
+
+Hello all.
+I am Aman.
+Final Result
+
+File transfer between two Ubuntu Virtual Machines using:
+
+VirtualBox NAT Network
+SSH Server
+SCP Command
+
+was completed successfully. 
